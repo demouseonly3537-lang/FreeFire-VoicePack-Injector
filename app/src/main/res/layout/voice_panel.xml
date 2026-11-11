@@ -3,20 +3,20 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#E6101010"
-    android:padding="12dp">
+    android:background="#F0101010"
+    android:padding="10dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp">
+        android:layout_marginBottom="8dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Your Sounds, Better"
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textSize="17sp"
             android:textStyle="bold"
             android:layout_centerVertical="true" />
 
@@ -37,35 +37,39 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="8dp">
+        android:layout_marginBottom="6dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Best"
             android:textColor="#00E676"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:paddingEnd="8dp" />
+            android:paddingEnd="6dp" />
 
         <TextView
+            android:id="@+id/voiceCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="60"
+            android:text="0"
             android:textColor="#FFFFFF"
             android:background="#333333"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
+            android:paddingLeft="7dp"
+            android:paddingRight="7dp"
             android:paddingTop="2dp"
             android:paddingBottom="2dp"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/voiceRecycler"
         android:layout_width="match_parent"
-        android:layout_height="360dp"
+        android:layout_height="400dp"
         android:clipToPadding="false"
-        android:overScrollMode="never" />
+        android:overScrollMode="always"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:scrollbarStyle="outsideOverlay" />
 
 </LinearLayout>
