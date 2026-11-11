@@ -18,16 +18,21 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.5'
 
+      - name: Setup Android SDK packages
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+
       - name: Create local.properties
-        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls -la $ANDROID_HOME || true
 
       - name: Generate Gradle Wrapper
         run: gradle wrapper --gradle-version 8.5
@@ -38,8 +43,8 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace --no-daemon
 
-      - name: List APK
-        run: find app/build/outputs -name "*.apk" -ls || true
+      - name: List outputs
+        run: find app/build/outputs -type f -name "*.apk" -ls || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
