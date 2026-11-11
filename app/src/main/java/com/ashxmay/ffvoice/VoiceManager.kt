@@ -21,101 +21,21 @@ object VoiceManager {
     private val userVoices = mutableListOf<VoiceItem>()
     private var initialized = false
 
-    // Voxie-style names + emojis. 60 entries.
-    private val voiceData = listOf(
-        "😱" to "FAHHH",
-        "✌️" to "bruh",
-        "🟢" to "gogo gaga",
-        "🔫" to "Shotgun",
-        "☣️" to "Bass drop",
-        "🔫" to "shot",
-        "🐱" to "Meow",
-        "✋" to "Slap",
-        "👊" to "knock knock",
-        "🟢" to "sus",
-        "🟢" to "Wasted",
-        "🟢" to "GopGopGop",
-        "✅" to "True",
-        "❌" to "Lie",
-        "🌹" to "Aww",
-        "😐" to "Rizz",
-        "🟢" to "screenshot",
-        "🟢" to "Waves",
-        "🪖" to "Headshot",
-        "☢️" to "Boom",
-        "🟢" to "Elevator mu...",
-        "🤔" to "you what?",
-        "🟢" to "letmeknow",
-        "😎" to "Brother eww...",
-        "🟢" to "relax",
-        "🟢" to "Lets go gam...",
-        "🐱" to "cat laughing",
-        "🟢" to "metal pipe",
-        "🔴" to "error sounds",
-        "⚔️" to "Enemy",
-        "🔥" to "Push",
-        "🛡️" to "Cover Me",
-        "🎯" to "Nice Shot",
-        "🙏" to "Thanks",
-        "😅" to "Sorry",
-        "🏃" to "Go Go",
-        "📍" to "Hold Position",
-        "⬅️" to "Flank Left",
-        "➡️" to "Flank Right",
-        "💊" to "Need Med",
-        "💀" to "Knocked",
-        "❤️" to "Reviving",
-        "✅" to "Safe",
-        "⚠️" to "Danger",
-        "👀" to "Behind You",
-        "🚨" to "Watch Out",
-        "🏆" to "Good Game",
-        "💪" to "Let's Win",
-        "⚡" to "Rush",
-        "🏕️" to "Camp",
-        "🔭" to "Sniper",
-        "📦" to "Airdrop",
-        "🌀" to "Zone Coming",
-        "🧱" to "Gloo Wall",
-        "🚗" to "Vehicle",
-        "1️⃣" to "One Left",
-        "2️⃣" to "Two Left",
-        "💥" to "Squad Wipe",
-        "👑" to "Clutch",
-        "🎖️" to "Ace",
-        "💣" to "Grenade",
-        "💨" to "Smoke",
-        "🆘" to "Help",
-        "✋" to "Wait",
-        "✅" to "Ready"
-    )
-
     fun init(context: Context) {
         if (initialized) return
         builtIn.clear()
+        userVoices.clear()
 
-        voiceData.forEachIndexed { index, pair ->
-            val resName = "voice_${index + 1}"
-            val resId = context.resources.getIdentifier(resName, "raw", context.packageName)
-            builtIn.add(
-                VoiceItem(
-                    id = "built_$index",
-                    name = pair.second,
-                    emoji = pair.first,
-                    resId = resId
-                )
-            )
-        }
-
+        // Prefer user uploaded voices (the ones you send via Upload Custom Voice)
         val dir = File(context.filesDir, "user_voices")
         if (dir.exists()) {
-            dir.listFiles()?.forEach { file ->
-                if (file.extension in listOf("mp3", "ogg", "wav", "m4a")) {
+            dir.listFiles()?.sortedBy { it.lastModified() }?.forEach { file ->
+                if (file.extension.lowercase() in listOf("mp3", "ogg", "wav", "m4a")) {
                     userVoices.add(
                         VoiceItem(
                             id = "user_${file.name}",
-                            name = file.nameWithoutExtension,
-                            emoji = "📁",
+                            name = file.nameWithoutExtension.take(20),
+                            emoji = "🎤",
                             filePath = file.absolutePath
                         )
                     )
@@ -123,18 +43,25 @@ object VoiceManager {
             }
         }
 
+        // If no user voices yet, show a few helpful placeholders
+        if (userVoices.isEmpty()) {
+            builtIn.add(VoiceItem("demo1", "Upload your voices", "📁", 0))
+            builtIn.add(VoiceItem("demo2", "Use Upload button", "⬆️", 0))
+            builtIn.add(VoiceItem("demo3", "Then they appear here", "✅", 0))
+        }
+
         initialized = true
-        Log.d("VoiceManager", "Loaded ${builtIn.size} built-in + ${userVoices.size} user voices")
+        Log.d("VoiceManager", "User voices: ${userVoices.size}, demo: ${builtIn.size}")
     }
 
-    fun getAllVoices(): List<VoiceItem> = builtIn + userVoices
+    fun getAllVoices(): List<VoiceItem> = userVoices + builtIn
 
     fun addUserVoice(context: Context, uri: Uri) {
         try {
             val dir = File(context.filesDir, "user_voices")
             if (!dir.exists()) dir.mkdirs()
 
-            val name = "user_${System.currentTimeMillis()}.mp3"
+            val name = "voice_${System.currentTimeMillis()}.mp3"
             val dest = File(dir, name)
 
             context.contentResolver.openInputStream(uri)?.use { input ->
@@ -143,14 +70,17 @@ object VoiceManager {
                 }
             }
 
+            // Reset so next init reloads
+            initialized = false
             userVoices.add(
                 VoiceItem(
                     id = "user_${dest.name}",
-                    name = dest.nameWithoutExtension,
-                    emoji = "📁",
+                    name = dest.nameWithoutExtension.take(18),
+                    emoji = "🎤",
                     filePath = dest.absolutePath
                 )
             )
+            Log.d("VoiceManager", "Added user voice: ${dest.name}")
         } catch (e: Exception) {
             Log.e("VoiceManager", "Failed to add voice: ${e.message}")
         }
