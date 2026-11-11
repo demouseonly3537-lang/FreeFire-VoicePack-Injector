@@ -19,6 +19,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.GridLayoutManager
@@ -39,7 +40,6 @@ class OverlayService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        // CRITICAL: always init voices inside service
         VoiceManager.init(this)
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         createNotificationChannel()
@@ -80,7 +80,7 @@ class OverlayService : Service() {
         )
         return NotificationCompat.Builder(this, channelId)
             .setContentTitle("FF Voice Pack Active")
-            .setContentText("Tap purple button to open sounds")
+            .setContentText("Tap purple button → Upload voices first")
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setContentIntent(pending)
             .setOngoing(true)
@@ -150,7 +150,6 @@ class OverlayService : Service() {
                         }
                         MotionEvent.ACTION_UP -> {
                             if (!moved) {
-                                Log.d(TAG, "Button clicked → opening panel")
                                 handler.post {
                                     Toast.makeText(this@OverlayService, "Opening sounds...", Toast.LENGTH_SHORT).show()
                                     togglePanel()
@@ -164,7 +163,7 @@ class OverlayService : Service() {
             })
 
             windowManager.addView(floatingButton, params)
-            Log.d(TAG, "Floating button added successfully")
+            Log.d(TAG, "Floating button added")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to show floating button: ${e.message}", e)
             handler.postDelayed({
@@ -174,11 +173,7 @@ class OverlayService : Service() {
     }
 
     private fun togglePanel() {
-        if (isPanelOpen) {
-            hidePanel()
-        } else {
-            showPanel()
-        }
+        if (isPanelOpen) hidePanel() else showPanel()
     }
 
     private fun showPanel() {
@@ -196,7 +191,6 @@ class OverlayService : Service() {
                 @Suppress("DEPRECATION")
                 WindowManager.LayoutParams.TYPE_PHONE
 
-            // Panel flags that allow real touch interaction
             val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                     WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                     WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
@@ -209,16 +203,20 @@ class OverlayService : Service() {
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.BOTTOM
-                y = 30
+                y = 20
             }
 
-            val recycler = panelView?.findViewById<RecyclerView>(R.id.voiceRecycler)
             val voices = VoiceManager.getAllVoices()
             Log.d(TAG, "Showing panel with ${voices.size} voices")
 
+            panelView?.findViewById<TextView>(R.id.voiceCount)?.text = voices.size.toString()
+
+            val recycler = panelView?.findViewById<RecyclerView>(R.id.voiceRecycler)
             recycler?.layoutManager = GridLayoutManager(this, 4)
+            recycler?.isNestedScrollingEnabled = true
+            recycler?.setHasFixedSize(true)
             recycler?.adapter = VoiceAdapter(voices) { voice ->
-                Log.d(TAG, "Playing voice: ${voice.name}")
+                Log.d(TAG, "Playing: ${voice.name}")
                 Toast.makeText(this, "Playing: ${voice.name}", Toast.LENGTH_SHORT).show()
                 VoicePlayer.play(this, voice)
             }
@@ -236,10 +234,9 @@ class OverlayService : Service() {
 
             windowManager.addView(panelView, params)
             isPanelOpen = true
-            Log.d(TAG, "Panel successfully added to window")
 
         } catch (e: Exception) {
-            Log.e(TAG, "CRITICAL: Failed to show panel: ${e.message}", e)
+            Log.e(TAG, "Panel error: ${e.message}", e)
             Toast.makeText(this, "Panel error: ${e.message}", Toast.LENGTH_LONG).show()
             panelView = null
             isPanelOpen = false
@@ -248,23 +245,16 @@ class OverlayService : Service() {
 
     private fun hidePanel() {
         panelView?.let {
-            try {
-                windowManager.removeView(it)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error removing panel: ${e.message}")
-            }
+            try { windowManager.removeView(it) } catch (_: Exception) {}
         }
         panelView = null
         isPanelOpen = false
-        Log.d(TAG, "Panel hidden")
     }
 
     private fun removeViews() {
         hidePanel()
         floatingButton?.let {
-            try {
-                windowManager.removeView(it)
-            } catch (_: Exception) {}
+            try { windowManager.removeView(it) } catch (_: Exception) {}
         }
         floatingButton = null
     }
