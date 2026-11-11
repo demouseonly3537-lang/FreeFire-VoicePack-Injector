@@ -9,6 +9,7 @@ import java.io.FileOutputStream
 data class VoiceItem(
     val id: String,
     val name: String,
+    val emoji: String = "🔊",
     val resId: Int = 0,
     val uri: Uri? = null,
     val filePath: String? = null
@@ -20,41 +21,92 @@ object VoiceManager {
     private val userVoices = mutableListOf<VoiceItem>()
     private var initialized = false
 
-    // 50+ placeholder names. Replace raw files later with real short voice clips.
-    private val voiceNames = listOf(
-        "Hello", "Enemy", "Push", "Fall Back", "Reload", "Cover Me",
-        "Nice Shot", "Thanks", "Sorry", "Go Go", "Hold Position",
-        "Flank Left", "Flank Right", "Need Ammo", "Need Med", "Knocked",
-        "Reviving", "Safe", "Danger", "Behind You", "Watch Out",
-        "Good Game", "Let's Win", "Rush", "Camp", "Sniper",
-        "Airdrop", "Zone Coming", "Healing", "Gloo Wall",
-        "Drop Here", "Vehicle", "Bridge", "Building", "Roof",
-        "One Left", "Two Left", "Squad Wipe", "Clutch", "Ace",
-        "Fire", "Grenade", "Smoke", "Flash", "Molotov",
-        "Help", "Come Here", "Wait", "Ready", "Go Silent",
-        "High Ground", "Low Ground", "Rotate", "Hold Angle",
-        "Peek", "Spray", "Tap", "Scope", "No Scope"
+    // Voxie-style names + emojis. 60 entries.
+    private val voiceData = listOf(
+        "😱" to "FAHHH",
+        "✌️" to "bruh",
+        "🟢" to "gogo gaga",
+        "🔫" to "Shotgun",
+        "☣️" to "Bass drop",
+        "🔫" to "shot",
+        "🐱" to "Meow",
+        "✋" to "Slap",
+        "👊" to "knock knock",
+        "🟢" to "sus",
+        "🟢" to "Wasted",
+        "🟢" to "GopGopGop",
+        "✅" to "True",
+        "❌" to "Lie",
+        "🌹" to "Aww",
+        "😐" to "Rizz",
+        "🟢" to "screenshot",
+        "🟢" to "Waves",
+        "🪖" to "Headshot",
+        "☢️" to "Boom",
+        "🟢" to "Elevator mu...",
+        "🤔" to "you what?",
+        "🟢" to "letmeknow",
+        "😎" to "Brother eww...",
+        "🟢" to "relax",
+        "🟢" to "Lets go gam...",
+        "🐱" to "cat laughing",
+        "🟢" to "metal pipe",
+        "🔴" to "error sounds",
+        "⚔️" to "Enemy",
+        "🔥" to "Push",
+        "🛡️" to "Cover Me",
+        "🎯" to "Nice Shot",
+        "🙏" to "Thanks",
+        "😅" to "Sorry",
+        "🏃" to "Go Go",
+        "📍" to "Hold Position",
+        "⬅️" to "Flank Left",
+        "➡️" to "Flank Right",
+        "💊" to "Need Med",
+        "💀" to "Knocked",
+        "❤️" to "Reviving",
+        "✅" to "Safe",
+        "⚠️" to "Danger",
+        "👀" to "Behind You",
+        "🚨" to "Watch Out",
+        "🏆" to "Good Game",
+        "💪" to "Let's Win",
+        "⚡" to "Rush",
+        "🏕️" to "Camp",
+        "🔭" to "Sniper",
+        "📦" to "Airdrop",
+        "🌀" to "Zone Coming",
+        "🧱" to "Gloo Wall",
+        "🚗" to "Vehicle",
+        "1️⃣" to "One Left",
+        "2️⃣" to "Two Left",
+        "💥" to "Squad Wipe",
+        "👑" to "Clutch",
+        "🎖️" to "Ace",
+        "💣" to "Grenade",
+        "💨" to "Smoke",
+        "🆘" to "Help",
+        "✋" to "Wait",
+        "✅" to "Ready"
     )
 
     fun init(context: Context) {
         if (initialized) return
         builtIn.clear()
 
-        // Map names to raw resources if they exist, otherwise keep name only
-        // User will replace with real audio later. For now generate silent placeholders via code if needed.
-        voiceNames.forEachIndexed { index, name ->
+        voiceData.forEachIndexed { index, pair ->
             val resName = "voice_${index + 1}"
             val resId = context.resources.getIdentifier(resName, "raw", context.packageName)
             builtIn.add(
                 VoiceItem(
                     id = "built_$index",
-                    name = name,
+                    name = pair.second,
+                    emoji = pair.first,
                     resId = resId
                 )
             )
         }
 
-        // Load any previously uploaded user voices from internal storage
         val dir = File(context.filesDir, "user_voices")
         if (dir.exists()) {
             dir.listFiles()?.forEach { file ->
@@ -63,6 +115,7 @@ object VoiceManager {
                         VoiceItem(
                             id = "user_${file.name}",
                             name = file.nameWithoutExtension,
+                            emoji = "📁",
                             filePath = file.absolutePath
                         )
                     )
@@ -94,6 +147,7 @@ object VoiceManager {
                 VoiceItem(
                     id = "user_${dest.name}",
                     name = dest.nameWithoutExtension,
+                    emoji = "📁",
                     filePath = dest.absolutePath
                 )
             )
