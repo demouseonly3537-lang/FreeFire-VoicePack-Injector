@@ -12,6 +12,7 @@ class VoiceAdapter(
 ) : RecyclerView.Adapter<VoiceAdapter.VH>() {
 
     class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val emoji: TextView = view.findViewById(R.id.voiceEmoji)
         val name: TextView = view.findViewById(R.id.voiceName)
     }
 
@@ -23,6 +24,7 @@ class VoiceAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = voices[position]
+        holder.emoji.text = item.emoji
         holder.name.text = item.name
         holder.itemView.setOnClickListener { onClick(item) }
     }
