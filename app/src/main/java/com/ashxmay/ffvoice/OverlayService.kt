@@ -41,7 +41,6 @@ class OverlayService : Service() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         createNotificationChannel()
         startForeground(1, buildNotification())
-        // Delay slightly so permission is fully applied
         handler.postDelayed({ safeShowFloatingButton() }, 400)
     }
 
@@ -77,7 +76,7 @@ class OverlayService : Service() {
         )
         return NotificationCompat.Builder(this, channelId)
             .setContentTitle("FF Voice Pack Active")
-            .setContentText("Floating button should be visible. Drag it.")
+            .setContentText("Tap the purple floating button")
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setContentIntent(pending)
             .setOngoing(true)
@@ -146,7 +145,10 @@ class OverlayService : Service() {
                             return true
                         }
                         MotionEvent.ACTION_UP -> {
-                            if (!moved) togglePanel()
+                            if (!moved) {
+                                Log.d(TAG, "Button tapped → toggle panel")
+                                togglePanel()
+                            }
                             return true
                         }
                     }
@@ -158,9 +160,8 @@ class OverlayService : Service() {
             Log.d(TAG, "Floating button added")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to show floating button: ${e.message}")
-            // Retry once after short delay
-            handler.postDelayed({ 
-                if (floatingButton == null) safeShowFloatingButton() 
+            handler.postDelayed({
+                if (floatingButton == null) safeShowFloatingButton()
             }, 1500)
         }
     }
@@ -181,8 +182,10 @@ class OverlayService : Service() {
                 @Suppress("DEPRECATION")
                 WindowManager.LayoutParams.TYPE_PHONE
 
+            // Important: allow touches on the panel
             val flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
 
             val params = WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -192,12 +195,13 @@ class OverlayService : Service() {
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.BOTTOM
-                y = 80
+                y = 40
             }
 
             val recycler = panelView?.findViewById<RecyclerView>(R.id.voiceRecycler)
-            recycler?.layoutManager = GridLayoutManager(this, 3)
+            recycler?.layoutManager = GridLayoutManager(this, 4)
             recycler?.adapter = VoiceAdapter(VoiceManager.getAllVoices()) { voice ->
+                Log.d(TAG, "Playing: ${voice.name}")
                 VoicePlayer.play(this, voice)
             }
 
@@ -207,6 +211,7 @@ class OverlayService : Service() {
 
             windowManager.addView(panelView, params)
             isPanelOpen = true
+            Log.d(TAG, "Panel opened")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to show panel: ${e.message}")
             panelView = null
