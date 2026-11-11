@@ -1,18 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
     android:padding="6dp">
+
+    <FrameLayout
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:background="@drawable/voice_card_bg">
+
+        <TextView
+            android:id="@+id/voiceEmoji"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="28sp"
+            android:text="🔊" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/voiceName"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="wrap_content"
         android:gravity="center"
-        android:background="@drawable/voice_btn_bg"
         android:textColor="#FFFFFF"
-        android:textSize="13sp"
+        android:textSize="11sp"
         android:maxLines="2"
-        android:ellipsize="end" />
+        android:ellipsize="end"
+        android:layout_marginTop="4dp" />
 
-</FrameLayout>
+</LinearLayout>
