@@ -3,6 +3,7 @@ package com.ashxmay.ffvoice
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import java.io.File
 import java.io.FileOutputStream
 
@@ -26,38 +27,46 @@ object VoiceManager {
         builtIn.clear()
         userVoices.clear()
 
-        // Prefer user uploaded voices (the ones you send via Upload Custom Voice)
+        // 1. Load all user-uploaded voices (this is the main source of real sounds)
         val dir = File(context.filesDir, "user_voices")
         if (dir.exists()) {
-            dir.listFiles()?.sortedBy { it.lastModified() }?.forEach { file ->
-                if (file.extension.lowercase() in listOf("mp3", "ogg", "wav", "m4a")) {
+            dir.listFiles()
+                ?.filter { it.extension.lowercase() in listOf("mp3", "ogg", "wav", "m4a") }
+                ?.sortedBy { it.lastModified() }
+                ?.forEach { file ->
                     userVoices.add(
                         VoiceItem(
                             id = "user_${file.name}",
-                            name = file.nameWithoutExtension.take(20),
+                            name = file.nameWithoutExtension.take(22),
                             emoji = "🎤",
                             filePath = file.absolutePath
                         )
                     )
                 }
-            }
         }
 
-        // If no user voices yet, show a few helpful placeholders
+        // 2. If still empty, show clear instruction cards
         if (userVoices.isEmpty()) {
-            builtIn.add(VoiceItem("demo1", "Upload your voices", "📁", 0))
-            builtIn.add(VoiceItem("demo2", "Use Upload button", "⬆️", 0))
-            builtIn.add(VoiceItem("demo3", "Then they appear here", "✅", 0))
+            builtIn.add(VoiceItem("help1", "1. Upload voices", "⬆️", 0))
+            builtIn.add(VoiceItem("help2", "2. Then play in game", "🎮", 0))
+            builtIn.add(VoiceItem("help3", "Mic ON in Free Fire", "🎙️", 0))
         }
 
         initialized = true
-        Log.d("VoiceManager", "User voices: ${userVoices.size}, demo: ${builtIn.size}")
+        Log.d("VoiceManager", "Loaded ${userVoices.size} user voices")
     }
 
     fun getAllVoices(): List<VoiceItem> = userVoices + builtIn
 
-    fun addUserVoice(context: Context, uri: Uri) {
-        try {
+    fun getUserCount(): Int = userVoices.size
+
+    fun forceReload(context: Context) {
+        initialized = false
+        init(context)
+    }
+
+    fun addUserVoice(context: Context, uri: Uri): Boolean {
+        return try {
             val dir = File(context.filesDir, "user_voices")
             if (!dir.exists()) dir.mkdirs()
 
@@ -68,21 +77,30 @@ object VoiceManager {
                 FileOutputStream(dest).use { output ->
                     input.copyTo(output)
                 }
+            } ?: return false
+
+            if (dest.length() < 500) {
+                dest.delete()
+                return false
             }
 
-            // Reset so next init reloads
+            // Immediately add to list
             initialized = false
             userVoices.add(
                 VoiceItem(
                     id = "user_${dest.name}",
-                    name = dest.nameWithoutExtension.take(18),
+                    name = dest.nameWithoutExtension.take(20),
                     emoji = "🎤",
                     filePath = dest.absolutePath
                 )
             )
-            Log.d("VoiceManager", "Added user voice: ${dest.name}")
+            forceReload(context)
+
+            Log.d("VoiceManager", "Added: ${dest.name} (${dest.length()} bytes)")
+            true
         } catch (e: Exception) {
-            Log.e("VoiceManager", "Failed to add voice: ${e.message}")
+            Log.e("VoiceManager", "Add failed: ${e.message}")
+            false
         }
     }
 }
