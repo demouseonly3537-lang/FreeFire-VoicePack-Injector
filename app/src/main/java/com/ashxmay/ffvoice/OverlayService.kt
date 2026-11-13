@@ -79,8 +79,8 @@ class OverlayService : Service() {
             PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, channelId)
-            .setContentTitle("FF Voice Pack Active")
-            .setContentText("Tap purple button → Upload voices first")
+            .setContentTitle("FF Voice Active")
+            .setContentText("Tap floating button · Local soundboard")
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setContentIntent(pending)
             .setOngoing(true)
@@ -151,7 +151,7 @@ class OverlayService : Service() {
                         MotionEvent.ACTION_UP -> {
                             if (!moved) {
                                 handler.post {
-                                    Toast.makeText(this@OverlayService, "Opening sounds...", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this@OverlayService, "Opening soundboard...", Toast.LENGTH_SHORT).show()
                                     togglePanel()
                                 }
                             }
@@ -209,7 +209,7 @@ class OverlayService : Service() {
             val voices = VoiceManager.getAllVoices()
             Log.d(TAG, "Showing panel with ${voices.size} voices")
 
-            panelView?.findViewById<TextView>(R.id.voiceCount)?.text = voices.size.toString()
+            panelView?.findViewById<TextView>(R.id.voiceCount)?.text = "${voices.size} sounds"
 
             val recycler = panelView?.findViewById<RecyclerView>(R.id.voiceRecycler)
             recycler?.layoutManager = GridLayoutManager(this, 4)
@@ -217,7 +217,7 @@ class OverlayService : Service() {
             recycler?.setHasFixedSize(true)
             recycler?.adapter = VoiceAdapter(voices) { voice ->
                 Log.d(TAG, "Playing: ${voice.name}")
-                Toast.makeText(this, "Playing: ${voice.name}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "▶ ${voice.name}", Toast.LENGTH_SHORT).show()
                 VoicePlayer.play(this, voice)
             }
 
