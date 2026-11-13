@@ -3,73 +3,67 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#F0101010"
-    android:padding="10dp">
+    android:background="#F00B0F19"
+    android:padding="12dp">
 
+    <!-- Header -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp">
+        android:layout_marginBottom="10dp">
 
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Your Sounds, Better"
-            android:textColor="#FFFFFF"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:layout_centerVertical="true" />
+            android:orientation="vertical"
+            android:layout_centerVertical="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Soundboard"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/voiceCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 sounds"
+                android:textColor="#00E676"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/btnClose"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:background="@android:color/transparent"
             android:contentDescription="Close"
             android:tint="#FFFFFF"
-            android:padding="6dp" />
+            android:padding="8dp" />
     </RelativeLayout>
 
-    <LinearLayout
+    <!-- Hint -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="6dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Best"
-            android:textColor="#00E676"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:paddingEnd="6dp" />
-
-        <TextView
-            android:id="@+id/voiceCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"
-            android:textColor="#FFFFFF"
-            android:background="#333333"
-            android:paddingLeft="7dp"
-            android:paddingRight="7dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:textSize="11sp" />
-    </LinearLayout>
+        android:text="Tap to play · Local only"
+        android:textColor="#5C6B8A"
+        android:textSize="11sp"
+        android:layout_marginBottom="10dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/voiceRecycler"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="420dp"
         android:clipToPadding="false"
         android:overScrollMode="always"
         android:scrollbars="vertical"
-        android:fadeScrollbars="false"
-        android:scrollbarStyle="outsideOverlay" />
+        android:fadeScrollbars="false" />
 
 </LinearLayout>
